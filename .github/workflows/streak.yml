@@ -4,24 +4,29 @@ on:
     - cron: "0 1,13 * * *"   # 08:00 và 20:00 giờ Việt Nam
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+concurrency: data
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install playwright
-      - run: xvfb-run -a python run.py
+      - run: pip install playwright cryptography
+      - run: xvfb-run -a python server.py run
         env:
-          COOKIES_JSON: ${{ secrets.COOKIES_JSON }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: screenshots
           path: shots/
           if-no-files-found: ignore
+      - run: |
+          git config user.name "streak-bot"
+          git config user.email "streak-bot@users.noreply.github.com"
+          git add data
+          if ! git diff --cached --quiet; then git commit -m "Cập nhật trạng thái"; git push; fi
