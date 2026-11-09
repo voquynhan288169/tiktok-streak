@@ -1,0 +1,29 @@
+name: Xử lý yêu cầu
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+  issues: write
+concurrency: data
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install cryptography
+      - run: python server.py process
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_CREATED: ${{ github.event.issue.created_at }}
+          GH_TOKEN: ${{ github.token }}
+      - run: |
+          git config user.name "streak-bot"
+          git config user.email "streak-bot@users.noreply.github.com"
+          git add data
+          if ! git diff --cached --quiet; then git commit -m "Cập nhật dữ liệu"; git push; fi

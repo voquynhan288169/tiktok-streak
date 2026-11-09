@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Giữ chuỗi TikTok</title>
+<style>
+:root{--bg:#eef1f5;--panel:#fff;--ink:#101828;--mut:#5d6b7e;--line:#d3dae4;--acc:#2b4acb;--on:#fff;--ok:#16794c;--bad:#b42318;--warn:#9a5b06}
+@media (prefers-color-scheme:dark){:root{--bg:#0e131b;--panel:#161d28;--ink:#e8edf4;--mut:#93a1b5;--line:#283344;--acc:#8ea2ff;--on:#0e131b;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,"Segoe UI",Roboto,sans-serif}
+main{max-width:680px;margin:0 auto;padding:32px 18px 64px}
+h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em}
+h2{font-size:1.1rem;margin:0 0 4px}
+.mut{color:var(--mut);font-size:.92rem}
+label{display:block;font-size:.9rem;color:var(--mut);margin:12px 0 4px}
+input,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:70px;resize:vertical}
+input:read-only{opacity:.65}
+button{padding:8px 14px;margin:12px 8px 0 0;border:0;border-radius:6px;background:var(--acc);color:var(--on);font:inherit;font-weight:600;cursor:pointer}
+button.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+button.danger{background:none;color:var(--bad);border:1px solid var(--bad)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.bar{margin:18px 0 6px}
+ul{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+li{padding:13px 16px;border-top:1px solid var(--line);cursor:pointer}
+li:first-child{border-top:0}
+li:hover{background:var(--bg)}
+li.empty{cursor:default;color:var(--mut)}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{font-size:.8rem;padding:1px 9px;border-radius:99px;border:1px solid currentColor}
+.on{color:var(--ok)}.off{color:var(--warn)}
+dialog{width:min(520px,94vw);border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+#mm{margin:12px 0 0;font-size:.92rem;min-height:1.4em}
+details{margin-top:8px;font-size:.88rem;color:var(--mut)}summary{cursor:pointer}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1>Giữ chuỗi TikTok</h1>
+<p class="mut">Các tài khoản đang được giữ chuỗi tự động (08:00 và 20:00 giờ Việt Nam). Bấm vào tài khoản của bạn để chỉnh sửa. Cần nhập đúng mật khẩu.</p>
+<div class="bar"><button id="new" style="margin-top:0">Đăng ký tài khoản</button><button id="ref" class="ghost" style="margin-top:0">Làm mới</button></div>
+<ul id="list"></ul>
+</main>
+
+<dialog id="dlg">
+  <h2 id="dt"></h2>
+  <label for="nm">Username TikTok của bạn</label>
+  <input id="nm" autocomplete="off">
+  <label for="pw">Mật khẩu quản lý (từ 6 ký tự, không khôi phục được nếu quên)</label>
+  <input id="pw" type="password" autocomplete="new-password">
+  <label for="ck">Cookie sessionid của TikTok</label>
+  <textarea id="ck" spellcheck="false"></textarea>
+  <details><summary>Lấy sessionid ở đâu?</summary>
+    <p>Đăng nhập tiktok.com trên máy tính, nhấn F12 → Application → Cookies → tiktok.com, copy cột Value của dòng <b>sessionid</b>. Cookie được mã hóa ngay trên máy bạn, chỉ hệ thống chạy tự động mới giải mã được.</p></details>
+  <label for="tg">Người cần giữ chuỗi (mỗi dòng một username, tối đa 10)</label>
+  <textarea id="tg" spellcheck="false"></textarea>
+  <label for="ms">Tin nhắn gửi mỗi lần</label>
+  <input id="ms" value="❤️">
+  <p id="mm" class="mut"></p>
+  <button id="go"></button><button id="st" class="ghost" hidden></button><button id="del" class="danger" hidden>Xóa tài khoản</button><button id="cl" class="ghost">Đóng</button>
+</dialog>
+
+<script>
+const $ = id => document.getElementById(id);
+const REPO = location.hostname.endsWith(".github.io")
+  ? location.hostname.split(".")[0] + "/" + location.pathname.split("/")[1] : "ten-ban/ten-repo";
+let cur = null;
+const say = (t, c) => { $("mm").textContent = t; $("mm").style.color = c ? "var(--" + c + ")" : ""; };
+
+async function load() {
+  try { render(await (await fetch("data/index.json?t=" + Date.now())).json()); } catch (e) { render([]); }
+}
+function render(rows) {
+  const ul = $("list"); ul.innerHTML = "";
+  if (!rows.length) { const li = document.createElement("li"); li.className = "empty"; li.textContent = "Chưa có tài khoản nào. Bấm Đăng ký tài khoản để bắt đầu."; ul.append(li); return; }
+  rows.forEach(x => {
+    const li = document.createElement("li"), top = document.createElement("div"), b = document.createElement("b"),
+      chip = document.createElement("span"), sub = document.createElement("div");
+    top.className = "top"; b.textContent = "@" + x.name;
+    chip.className = "chip " + (x.active ? "on" : "off"); chip.textContent = x.active ? "Đang chạy" : "Đã dừng";
+    sub.className = "mut";
+    sub.textContent = x.targets.length + " người · " + (x.last_run ? new Date(x.last_run).toLocaleString("vi-VN") : "chưa chạy") + " · " + x.last_status;
+    top.append(b, chip); li.append(top, sub); li.tabIndex = 0;
+    li.onclick = () => openDlg(x); li.onkeydown = e => { if (e.key === "Enter") openDlg(x); };
+    ul.append(li);
+  });
+}
+function openDlg(x) {
+  cur = x; say("");
+  $("dt").textContent = x ? "Chỉnh sửa @" + x.name : "Đăng ký tài khoản";
+  $("nm").value = x ? x.name : ""; $("nm").readOnly = !!x;
+  $("pw").value = ""; $("ck").value = "";
+  $("ck").placeholder = x ? "Để trống nếu không đổi cookie" : "";
+  $("tg").value = x ? x.targets.join("\n") : ""; $("ms").value = x ? x.message : "❤️";
+  $("go").textContent = x ? "Lưu thay đổi" : "Đăng ký";
+  $("st").hidden = $("del").hidden = !x;
+  if (x) $("st").textContent = x.active ? "Dừng giữ chuỗi" : "Chạy lại";
+  $("dlg").showModal();
+}
+
+async function seal(obj) {
+  const pem = await (await fetch("data/pubkey.pem")).text();
+  const der = Uint8Array.from(atob(pem.replace(/-----[^-]+-----|\s/g, "")), c => c.charCodeAt(0));
+  const pub = await crypto.subtle.importKey("spki", der, {name: "RSA-OAEP", hash: "SHA-256"}, false, ["encrypt"]);
+  const aes = await crypto.subtle.generateKey({name: "AES-GCM", length: 256}, true, ["encrypt"]);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name: "AES-GCM", iv}, aes, new TextEncoder().encode(JSON.stringify({...obj, ts: Date.now()}))));
+  const wk = new Uint8Array(await crypto.subtle.encrypt({name: "RSA-OAEP"}, pub, await crypto.subtle.exportKey("raw", aes)));
+  const b64 = u => btoa(String.fromCharCode(...u));
+  return JSON.stringify({k: b64(wk), i: b64(iv), c: b64(ct)});
+}
+async function send(a) {
+  const p = {a, name: $("nm").value.trim().replace(/^@/, ""), pw: $("pw").value, cookie: $("ck").value.trim(),
+    message: $("ms").value.trim(), targets: $("tg").value.split(/[\s,]+/).filter(Boolean)};
+  if (!/^[A-Za-z0-9._]{1,24}$/.test(p.name)) return say("Username TikTok không hợp lệ.", "bad");
+  if (p.pw.length < 6) return say("Mật khẩu cần từ 6 ký tự.", "bad");
+  if (a === "register" && !p.cookie) return say("Dán cookie sessionid của bạn.", "bad");
+  if (a === "delete" && !confirm("Xóa hẳn tài khoản này khỏi danh sách?")) return;
+  try {
+    const body = await seal(p);
+    window.open("https://github.com/" + REPO + "/issues/new?title=" + encodeURIComponent("Yêu cầu " + a) + "&body=" + encodeURIComponent(body), "_blank");
+    say("Đã mở GitHub ở tab mới. Bấm Submit new issue ở đó (cần đăng nhập GitHub). Sau 1 đến 2 phút, bấm Làm mới ở trang này.", "ok");
+  } catch (e) { say("Không mã hóa được yêu cầu. Kiểm tra file data/pubkey.pem đã có trong repo chưa.", "bad"); }
+}
+$("go").onclick = () => send(cur ? "update" : "register");
+$("st").onclick = () => send(cur.active ? "stop" : "start");
+$("del").onclick = () => send("delete");
+$("cl").onclick = () => $("dlg").close();
+$("new").onclick = () => openDlg(null);
+$("ref").onclick = load;
+load();
+</script>
+</body>
+</html>
