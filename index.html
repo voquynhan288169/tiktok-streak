@@ -3,101 +3,246 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Giữ chuỗi TikTok</title>
+<title>Streak Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
-:root{--bg:#eef1f5;--panel:#fff;--ink:#101828;--mut:#5d6b7e;--line:#d3dae4;--acc:#2b4acb;--on:#fff;--ok:#16794c;--bad:#b42318;--warn:#9a5b06}
-@media (prefers-color-scheme:dark){:root{--bg:#0e131b;--panel:#161d28;--ink:#e8edf4;--mut:#93a1b5;--line:#283344;--acc:#8ea2ff;--on:#0e131b;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,"Segoe UI",Roboto,sans-serif}
-main{max-width:680px;margin:0 auto;padding:32px 18px 64px}
-h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em}
-h2{font-size:1.1rem;margin:0 0 4px}
-.mut{color:var(--mut);font-size:.92rem}
-label{display:block;font-size:.9rem;color:var(--mut);margin:12px 0 4px}
-input,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
-textarea{min-height:70px;resize:vertical}
-input:read-only{opacity:.65}
-button{padding:8px 14px;margin:12px 8px 0 0;border:0;border-radius:6px;background:var(--acc);color:var(--on);font:inherit;font-weight:600;cursor:pointer}
-button.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
-button.danger{background:none;color:var(--bad);border:1px solid var(--bad)}
-:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.bar{margin:18px 0 6px}
-ul{list-style:none;margin:0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:8px}
-li{padding:13px 16px;border-top:1px solid var(--line);cursor:pointer}
-li:first-child{border-top:0}
-li:hover{background:var(--bg)}
-li.empty{cursor:default;color:var(--mut)}
-.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.chip{font-size:.8rem;padding:1px 9px;border-radius:99px;border:1px solid currentColor}
-.on{color:var(--ok)}.off{color:var(--warn)}
-dialog{width:min(520px,94vw);border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);padding:20px}
-dialog::backdrop{background:rgba(0,0,0,.5)}
-#mm{margin:12px 0 0;font-size:.92rem;min-height:1.4em}
-details{margin-top:8px;font-size:.88rem;color:var(--mut)}summary{cursor:pointer}
+:root{
+--bg-main:#0C0D10;--bg-sidebar:#101115;--bg-card:#15171C;--bg-card-hover:#1A1D23;--bg-elevated:#1E2128;--bg-input:#111318;--bg-overlay:rgba(0,0,0,.65);--bg-modal:#17191F;--bg-thead:#121419;
+--border-primary:#282B33;--border-secondary:#20232A;--border-focus:#8B7CFF;--border-modal:#30333D;
+--text-primary:#F5F6F8;--text-secondary:#A0A5B1;--text-muted:#6F7683;--text-disabled:#4E5460;--text-nav:#9298A5;--text-head:#858B98;--text-btn:#E4E6EB;--text-nav-active:#C4B9FF;--icon-nav-active:#A99AFF;--on-accent:#FFFFFF;
+--accent-primary:#8B7CFF;--accent-hover:#7969F5;--accent-subtle:rgba(139,124,255,.12);
+--success:#30C78A;--success-bg:rgba(48,199,138,.10);--warning:#F3B75B;--warning-bg:rgba(243,183,91,.10);--danger:#F06B75;--danger-bg:rgba(240,107,117,.10);--info:#65A7F5;--info-bg:rgba(101,167,245,.10)}
+*{box-sizing:border-box;margin:0}
+html{color-scheme:dark}
+body{background:var(--bg-main);color:var(--text-primary);font:400 14px/21px Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent-primary);outline-offset:2px}
+svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 [hidden]{display:none!important}
+
+aside{position:fixed;inset:0 auto 0 0;width:248px;height:100vh;padding:20px 14px;background:var(--bg-sidebar);border-right:1px solid var(--border-primary);z-index:30;transition:transform 180ms ease}
+.logo{display:flex;align-items:center;gap:8px;height:44px;margin-bottom:28px;font-size:16px;font-weight:600}
+.logo i{width:30px;height:30px;border-radius:7px;background:var(--accent-subtle);color:var(--accent-primary);display:grid;place-items:center}
+.nav{display:flex;align-items:center;gap:10px;height:38px;width:100%;padding:0 11px;margin-bottom:4px;border-radius:7px;font-size:13px;line-height:19px;font-weight:500;color:var(--text-nav);transition:background 150ms ease,color 150ms ease}
+.nav:hover{background:var(--bg-card-hover)}
+.nav.active{background:var(--accent-subtle);color:var(--text-nav-active)}
+.nav.active svg{color:var(--icon-nav-active)}
+.scrim{display:none}
+.col{margin-left:248px}
+header{position:sticky;top:0;z-index:20;height:64px;padding:0 32px;display:flex;align-items:center;gap:12px;background:var(--bg-main);border-bottom:1px solid var(--border-primary)}
+.crumb{display:flex;gap:8px;font-size:13px;line-height:19px;color:var(--text-muted)}
+.crumb b{color:var(--text-primary);font-weight:500}
+.sp{flex:1}
+.search{display:flex;align-items:center;gap:8px;width:240px;height:34px;padding:0 12px;background:var(--bg-input);border:1px solid var(--border-primary);border-radius:7px;color:var(--text-muted);transition:border-color 150ms ease}
+.search:focus-within{border-color:var(--border-focus);outline:2px solid var(--accent-subtle)}
+.search input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:12px;color:var(--text-primary)}
+.ib{width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:7px;background:none;color:var(--text-secondary);cursor:pointer;transition:background 150ms ease}
+.ib:hover{background:var(--bg-card-hover)}
+.mob{display:none}
+.av{width:30px;height:30px;border-radius:50%;background:var(--accent-subtle);color:var(--text-nav-active);display:grid;place-items:center;font-size:11px;font-weight:600}
+main{max-width:1500px;padding:28px 32px 40px}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:24px}
+h1{font-size:24px;line-height:32px;font-weight:600;letter-spacing:-.6px}
+h2{font-size:18px;line-height:26px;font-weight:600}
+.sec{font-size:13px;line-height:19px;color:var(--text-secondary)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.card{display:grid;gap:4px;align-content:space-between;min-height:116px;padding:20px;background:var(--bg-card);border:1px solid var(--border-primary);border-radius:10px}
+.num{font-size:28px;line-height:34px;font-weight:600;letter-spacing:-.8px}
+.ind{display:flex;align-items:center;gap:8px;font-size:12px;line-height:16px;color:var(--text-muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted)}
+.c-s .dot{background:var(--success)}.c-i .dot{background:var(--info)}.c-w .dot{background:var(--warning)}
+.tw{background:var(--bg-card);border:1px solid var(--border-primary);border-radius:10px;overflow-x:auto}
+table{width:100%;min-width:720px;border-collapse:collapse}
+th{height:42px;padding:0 14px;text-align:left;font-size:11px;line-height:16px;font-weight:500;letter-spacing:.4px;text-transform:uppercase;color:var(--text-head);background:var(--bg-thead)}
+td{height:64px;padding:0 14px;font-size:13px;line-height:20px;border-top:1px solid var(--border-secondary)}
+td.mu{color:var(--text-secondary)}
+td.empty{height:96px;text-align:center;color:var(--text-muted);cursor:default}
+tbody tr{cursor:pointer;transition:background 150ms ease}
+tbody tr:hover{background:var(--bg-card-hover)}
+.who{display:flex;align-items:center;gap:12px}
+.pic{width:34px;height:34px;border-radius:50%;background:var(--accent-subtle);color:var(--text-nav-active);display:grid;place-items:center;font-size:13px;font-weight:600}
+.who b{display:block;font-weight:600}
+.who span{display:block;font-size:12px;line-height:16px;color:var(--text-nav)}
+.badge{display:inline-flex;align-items:center;gap:6px;height:23px;padding:0 8px;border-radius:5px;font-size:11px;font-weight:500;white-space:nowrap}
+.badge i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.b-s{color:var(--success);background:var(--success-bg)}.b-w{color:var(--warning);background:var(--warning-bg)}
+.b-d{color:var(--danger);background:var(--danger-bg)}.b-n{color:var(--text-nav);background:var(--border-secondary)}
+
+.btn{height:36px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:7px;font-size:13px;line-height:19px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background 150ms ease,border-color 150ms ease,transform 100ms ease}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{background:var(--bg-elevated);color:var(--text-disabled);cursor:not-allowed;transform:none}
+.pri{background:var(--accent-primary);color:var(--on-accent)}.pri:hover{background:var(--accent-hover)}
+.sc{background:var(--bg-card);border-color:var(--border-primary);color:var(--text-btn)}.sc:hover{background:var(--bg-card-hover)}
+.gh{background:none;color:var(--text-secondary)}.gh:hover{background:var(--bg-card-hover)}
+.dg{background:var(--danger);color:var(--on-accent);margin-right:auto}.dg:hover{background:var(--danger);opacity:.9}
+
+dialog{width:min(480px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;margin:auto;padding:24px;border:1px solid var(--border-modal);border-radius:12px;background:var(--bg-modal);color:var(--text-primary)}
+dialog[open]{animation:in 180ms ease}
+dialog::backdrop{background:var(--bg-overlay)}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.fld{margin-top:16px}
+label{display:block;margin-bottom:8px;font-size:12px;line-height:16px;font-weight:500;color:var(--text-btn)}
+.inp{width:100%;height:38px;padding:0 12px;font-size:13px;line-height:20px;background:var(--bg-input);border:1px solid var(--border-primary);border-radius:7px;transition:border-color 150ms ease}
+textarea.inp{height:auto;min-height:76px;padding:8px 12px;resize:vertical}
+.inp:focus{outline:2px solid var(--accent-subtle);border-color:var(--border-focus)}
+.inp:read-only{color:var(--text-muted)}
+#mm{min-height:19px;margin-top:12px;font-size:13px;line-height:19px}
+.t-bad{color:var(--danger)}.t-ok{color:var(--success)}
+.foot{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border-primary)}
+ol{margin:16px 0 0 20px;font-size:13px;line-height:19px;color:var(--text-secondary)}ol li{margin-bottom:8px}
+#ts{position:fixed;right:24px;bottom:24px;display:grid;gap:8px;z-index:50}
+.toast{display:flex;align-items:center;gap:8px;max-width:360px;padding:12px 16px;background:var(--bg-elevated);border:1px solid var(--border-primary);border-radius:8px;font-size:13px;line-height:19px;animation:in 200ms ease}
+.toast::before{content:"";width:6px;height:6px;border-radius:50%;flex:none;background:var(--info)}
+.toast.ok::before{background:var(--success)}.toast.warn::before{background:var(--warning)}
+
+@media (max-width:1024px){header{padding:0 24px}main{padding:28px 24px 40px}.metrics{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:768px){
+aside{transform:translateX(-100%)}body.open aside{transform:none}
+body.open .scrim{display:block;position:fixed;inset:0;z-index:25;background:var(--bg-overlay)}
+.col{margin-left:0}.mob{display:grid}header{padding:0 20px}main{padding:20px}.search{width:auto;flex:1;max-width:240px}.sp{display:none}}
+@media (max-width:390px){
+header{height:56px;padding:0 16px}main{padding:16px}.crumb{display:none}.metrics{grid-template-columns:1fr}
+.ph{flex-direction:column}.ph .btn{width:100%}#ts{left:16px;right:16px;bottom:16px}.toast{max-width:none}}
 </style>
 </head>
 <body>
-<main>
-<h1>Giữ chuỗi TikTok</h1>
-<p class="mut">Các tài khoản đang được giữ chuỗi tự động (08:00 và 20:00 giờ Việt Nam). Bấm vào tài khoản của bạn để chỉnh sửa. Cần nhập đúng mật khẩu.</p>
-<div class="bar"><button id="new" style="margin-top:0">Đăng ký tài khoản</button><button id="ref" class="ghost" style="margin-top:0">Làm mới</button></div>
-<ul id="list"></ul>
-</main>
+<aside id="sb">
+  <div class="logo"><i><svg viewBox="0 0 24 24"><path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></svg></i>Streak Hub</div>
+  <nav>
+    <a class="nav active" href="#" id="n1"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Tổng quan</a>
+    <a class="nav" href="#" id="n2"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/></svg>Hướng dẫn</a>
+    <a class="nav" id="n3" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Nhật ký chạy</a>
+  </nav>
+</aside>
+<div class="scrim" id="sc"></div>
+<div class="col">
+  <header>
+    <button class="ib mob" id="mb" aria-label="Mở menu"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <div class="crumb"><span>Streak Hub</span><span>/</span><b>Tổng quan</b></div>
+    <div class="sp"></div>
+    <label class="search" style="margin:0"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Tìm tài khoản" autocomplete="off"></label>
+    <button class="ib" id="ref" aria-label="Làm mới"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+    <a class="av" id="gh" target="_blank" rel="noopener" aria-label="Mở repo trên GitHub">SH</a>
+  </header>
+  <main>
+    <div class="ph">
+      <div><h1>Tài khoản giữ chuỗi</h1><p class="sec">Tự động nhắn tin lúc 08:00 và 20:00 (giờ Việt Nam). Chọn một tài khoản để chỉnh sửa, cần nhập mật khẩu.</p></div>
+      <button class="btn pri" id="new"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Đăng ký tài khoản</button>
+    </div>
+    <section class="metrics" id="mt"></section>
+    <div class="tw"><table>
+      <thead><tr><th>Tài khoản</th><th>Trạng thái</th><th>Lần chạy cuối</th><th>Kết quả</th><th></th></tr></thead>
+      <tbody id="tb"><tr><td class="empty" colspan="5">Đang tải…</td></tr></tbody>
+    </table></div>
+  </main>
+</div>
 
 <dialog id="dlg">
-  <h2 id="dt"></h2>
-  <label for="nm">Username TikTok của bạn</label>
-  <input id="nm" autocomplete="off">
-  <label for="pw">Mật khẩu quản lý (từ 6 ký tự, không khôi phục được nếu quên)</label>
-  <input id="pw" type="password" autocomplete="new-password">
-  <label for="ck">Cookie sessionid của TikTok</label>
-  <textarea id="ck" spellcheck="false"></textarea>
-  <details><summary>Lấy sessionid ở đâu?</summary>
-    <p>Đăng nhập tiktok.com trên máy tính, nhấn F12 → Application → Cookies → tiktok.com, copy cột Value của dòng <b>sessionid</b>. Cookie được mã hóa ngay trên máy bạn, chỉ hệ thống chạy tự động mới giải mã được.</p></details>
-  <label for="tg">Người cần giữ chuỗi (mỗi dòng một username, tối đa 10)</label>
-  <textarea id="tg" spellcheck="false"></textarea>
-  <label for="ms">Tin nhắn gửi mỗi lần</label>
-  <input id="ms" value="❤️">
-  <p id="mm" class="mut"></p>
-  <button id="go"></button><button id="st" class="ghost" hidden></button><button id="del" class="danger" hidden>Xóa tài khoản</button><button id="cl" class="ghost">Đóng</button>
+  <h2 id="dt"></h2><p class="sec" id="dd"></p>
+  <div class="fld"><label for="nm">Username TikTok</label><input class="inp" id="nm" autocomplete="off"></div>
+  <div class="fld"><label for="pw">Mật khẩu quản lý (từ 6 ký tự, không khôi phục được)</label><input class="inp" id="pw" type="password" autocomplete="new-password"></div>
+  <div class="fld"><label for="ck">Cookie sessionid của TikTok</label><input class="inp" id="ck" autocomplete="off" spellcheck="false"></div>
+  <div class="fld"><label for="tg">Người cần giữ chuỗi (mỗi dòng một username, tối đa 10)</label><textarea class="inp" id="tg" spellcheck="false"></textarea></div>
+  <div class="fld"><label for="ms">Tin nhắn gửi mỗi lần</label><input class="inp" id="ms"></div>
+  <p id="mm"></p>
+  <div class="foot">
+    <button class="btn dg" id="del" hidden>Xóa tài khoản</button>
+    <button class="btn gh" id="cl">Đóng</button>
+    <button class="btn sc" id="st" hidden></button>
+    <button class="btn pri" id="go"></button>
+  </div>
 </dialog>
 
+<dialog id="help">
+  <h2>Cách dùng</h2>
+  <ol>
+    <li>Đăng nhập tiktok.com trên máy tính.</li>
+    <li>Nhấn F12, vào Application → Cookies → tiktok.com, copy giá trị của dòng <b>sessionid</b>.</li>
+    <li>Bấm Đăng ký tài khoản, điền username, mật khẩu, cookie và danh sách người nhận.</li>
+    <li>Ở tab GitHub vừa mở, bấm Submit new issue (cần đăng nhập GitHub). Cookie được mã hóa ngay trên máy bạn.</li>
+  </ol>
+  <div class="foot"><button class="btn sc" id="hc">Đã hiểu</button></div>
+</dialog>
+<div id="ts"></div>
+
 <script>
-const $ = id => document.getElementById(id);
+const $ = i => document.getElementById(i);
 const REPO = location.hostname.endsWith(".github.io")
   ? location.hostname.split(".")[0] + "/" + location.pathname.split("/")[1] : "ten-ban/ten-repo";
-let cur = null;
-const say = (t, c) => { $("mm").textContent = t; $("mm").style.color = c ? "var(--" + c + ")" : ""; };
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+let rows = [], cur = null, sig = "";
+$("n3").href = "https://github.com/" + REPO + "/actions";
+$("gh").href = "https://github.com/" + REPO;
 
-async function load() {
-  try { render(await (await fetch("data/index.json?t=" + Date.now())).json()); } catch (e) { render([]); }
-}
-function render(rows) {
-  const ul = $("list"); ul.innerHTML = "";
-  if (!rows.length) { const li = document.createElement("li"); li.className = "empty"; li.textContent = "Chưa có tài khoản nào. Bấm Đăng ký tài khoản để bắt đầu."; ul.append(li); return; }
-  rows.forEach(x => {
-    const li = document.createElement("li"), top = document.createElement("div"), b = document.createElement("b"),
-      chip = document.createElement("span"), sub = document.createElement("div");
-    top.className = "top"; b.textContent = "@" + x.name;
-    chip.className = "chip " + (x.active ? "on" : "off"); chip.textContent = x.active ? "Đang chạy" : "Đã dừng";
-    sub.className = "mut";
-    sub.textContent = x.targets.length + " người · " + (x.last_run ? new Date(x.last_run).toLocaleString("vi-VN") : "chưa chạy") + " · " + x.last_status;
-    top.append(b, chip); li.append(top, sub); li.tabIndex = 0;
-    li.onclick = () => openDlg(x); li.onkeydown = e => { if (e.key === "Enter") openDlg(x); };
-    ul.append(li);
+const toast = (t, k) => { const e = el("div", "toast " + (k || ""), t); $("ts").append(e); setTimeout(() => e.remove(), 6000); };
+const say = (t, k) => { $("mm").textContent = t; $("mm").className = k ? "t-" + k : ""; };
+const badge = (k, t) => { const b = el("span", "badge b-" + k); b.append(el("i"), document.createTextNode(t)); return b; };
+const when = s => s ? new Date(s).toLocaleString("vi-VN", {dateStyle: "short", timeStyle: "short"}) : "Chưa chạy";
+
+function render() {
+  const q = $("q").value.trim().toLowerCase(), list = rows.filter(r => r.name.toLowerCase().includes(q));
+  const M = [
+    ["Tài khoản", rows.length, "Đã đăng ký", "n"],
+    ["Đang chạy", rows.filter(r => r.active).length, "Tự động 08:00 và 20:00", "s"],
+    ["Người được nhắn", rows.reduce((s, r) => s + r.targets.length, 0), "Tối đa 10 mỗi tài khoản", "i"],
+    ["Cần chú ý", rows.filter(r => !r.active || /^(Lỗi|Cookie)/.test(r.last_status)).length, "Đã dừng, hết hạn hoặc lỗi gửi", "w"]];
+  $("mt").replaceChildren(...M.map(([l, n, s, k]) => {
+    const c = el("div", "card"), ind = el("div", "ind c-" + k);
+    ind.append(el("i", "dot"), document.createTextNode(s));
+    c.append(el("div", "sec", l), el("div", "num", n), ind); return c; }));
+  const tb = $("tb"); tb.replaceChildren();
+  if (!list.length) {
+    const tr = el("tr"), td = el("td", "empty", rows.length ? "Không có tài khoản khớp." : "Chưa có tài khoản nào. Bấm Đăng ký tài khoản để bắt đầu.");
+    td.colSpan = 5; tr.append(td); tb.append(tr); return;
+  }
+  list.forEach(r => {
+    const tr = el("tr"), who = el("td"), w = el("div", "who"), t = el("div");
+    t.append(el("b", null, "@" + r.name), el("span", null, r.targets.length + " người nhận"));
+    w.append(el("div", "pic", r.name[0].toUpperCase()), t); who.append(w);
+    const st = el("td"); st.append(r.active ? badge("s", "Đang chạy") : /^Cookie/.test(r.last_status) ? badge("d", "Hết hạn cookie") : badge("w", "Đã dừng"));
+    const rs = el("td"); rs.append(badge(/^Thành/.test(r.last_status) ? "s" : /^Lỗi/.test(r.last_status) ? "w" : /^Cookie/.test(r.last_status) ? "d" : "n", r.last_status));
+    const ac = el("td"); ac.append(el("button", "btn sc", "Quản lý"));
+    tr.append(who, st, el("td", "mu", when(r.last_run)), rs, ac);
+    tr.tabIndex = 0; tr.onclick = () => openDlg(r); tr.onkeydown = e => { if (e.key === "Enter") openDlg(r); };
+    tb.append(tr);
   });
 }
-function openDlg(x) {
-  cur = x; say("");
-  $("dt").textContent = x ? "Chỉnh sửa @" + x.name : "Đăng ký tài khoản";
-  $("nm").value = x ? x.name : ""; $("nm").readOnly = !!x;
+
+// Đọc thẳng từ GitHub API để thấy thay đổi ngay khi Action commit, không chờ Pages dựng lại.
+async function fetchData() {
+  try {
+    const r = await fetch("https://api.github.com/repos/" + REPO + "/contents/data/index.json", {headers: {Accept: "application/vnd.github.raw+json"}, cache: "no-store"});
+    if (r.ok) return await r.json();
+  } catch (e) {}
+  return (await fetch("data/index.json?t=" + Date.now(), {cache: "no-store"})).json();
+}
+async function load() {
+  try { rows = await fetchData(); sig = JSON.stringify(rows); } catch (e) { rows = []; }
+  render();
+}
+function poll() {
+  const base = sig; let n = 0;
+  const t = setInterval(async () => {
+    n++; await load();
+    if (sig !== base) { clearInterval(t); toast("Đã cập nhật dữ liệu.", "ok"); }
+    else if (n >= 22) { clearInterval(t); toast("Chưa thấy thay đổi. Kiểm tra tab Actions trên GitHub, hoặc bấm làm mới sau.", "warn"); }
+  }, 8000);
+}
+
+function openDlg(r) {
+  cur = r; say("");
+  $("dt").textContent = r ? "Chỉnh sửa @" + r.name : "Đăng ký tài khoản";
+  $("dd").textContent = r ? "Nhập mật khẩu để lưu thay đổi." : "Cookie được mã hóa trên máy bạn trước khi gửi đi.";
+  $("nm").value = r ? r.name : ""; $("nm").readOnly = !!r;
   $("pw").value = ""; $("ck").value = "";
-  $("ck").placeholder = x ? "Để trống nếu không đổi cookie" : "";
-  $("tg").value = x ? x.targets.join("\n") : ""; $("ms").value = x ? x.message : "❤️";
-  $("go").textContent = x ? "Lưu thay đổi" : "Đăng ký";
-  $("st").hidden = $("del").hidden = !x;
-  if (x) $("st").textContent = x.active ? "Dừng giữ chuỗi" : "Chạy lại";
+  $("ck").placeholder = r ? "Để trống nếu không đổi cookie" : "Dán giá trị sessionid";
+  $("tg").value = r ? r.targets.join("\n") : ""; $("ms").value = r ? r.message : "❤️";
+  $("go").textContent = r ? "Lưu thay đổi" : "Đăng ký";
+  $("st").hidden = $("del").hidden = !r;
+  if (r) $("st").textContent = r.active ? "Dừng giữ chuỗi" : "Chạy lại";
   $("dlg").showModal();
 }
 
@@ -122,15 +267,24 @@ async function send(a) {
   try {
     const body = await seal(p);
     window.open("https://github.com/" + REPO + "/issues/new?title=" + encodeURIComponent("Yêu cầu " + a) + "&body=" + encodeURIComponent(body), "_blank");
-    say("Đã mở GitHub ở tab mới. Bấm Submit new issue ở đó (cần đăng nhập GitHub). Sau 1 đến 2 phút, bấm Làm mới ở trang này.", "ok");
+    $("dlg").close();
+    toast("Đã mở GitHub. Bấm Submit new issue ở tab đó, trang này sẽ tự cập nhật.", "ok");
+    poll();
   } catch (e) { say("Không mã hóa được yêu cầu. Kiểm tra file data/pubkey.pem đã có trong repo chưa.", "bad"); }
 }
+
 $("go").onclick = () => send(cur ? "update" : "register");
 $("st").onclick = () => send(cur.active ? "stop" : "start");
 $("del").onclick = () => send("delete");
 $("cl").onclick = () => $("dlg").close();
 $("new").onclick = () => openDlg(null);
-$("ref").onclick = load;
+$("ref").onclick = async () => { await load(); toast("Đã làm mới.", "ok"); };
+$("q").oninput = render;
+$("n1").onclick = e => { e.preventDefault(); document.body.classList.remove("open"); scrollTo({top: 0}); };
+$("n2").onclick = e => { e.preventDefault(); document.body.classList.remove("open"); $("help").showModal(); };
+$("hc").onclick = () => $("help").close();
+$("mb").onclick = () => document.body.classList.add("open");
+$("sc").onclick = () => document.body.classList.remove("open");
 load();
 </script>
 </body>
